@@ -100,10 +100,6 @@ for elem in bldgroot:
     if refs[0] != refs[-1]:
         outroot.append(elem)
         continue
-    if 'version' in elem.attrib:
-        v = int(elem.attrib['version'])
-    else:
-        v = 1
     if rhr.is_rhr(way[1:]):
         nway = way
     else:
@@ -111,7 +107,7 @@ for elem in bldgroot:
         nway.reverse()
     eway = expand(nway, 1.5 * 360 / 40000000)
     eeway = expand(nway, 4.0 * 360 / 40000000)
-    bldgs.append(( lat, lon, way, eway, eeway, refs, tags, id, v, [] ))
+    bldgs.append(( lat, lon, way, eway, eeway, refs, tags, elem.attrib, [] ))
 bldgroot = None # Make python release the XML structure
 
 
@@ -145,7 +141,7 @@ sys.stdout.write("Matching nodes to buildings\n")
 for addr in addrs:
     lat, lon = addr[:2]
     # Find what if any building shapes contain this lat/lon
-    for elat, elon, way, eway, eeway, refs, btags, id, v, newaddrs in bldgs:
+    for elat, elon, way, eway, eeway, refs, btags, attrs, newaddrs in bldgs:
         if 'addr:housenumber' in btags:
             continue
         if abs(elat - lat) + abs(elon - lon) > 0.005:
@@ -161,7 +157,7 @@ for addr in addrs:
         continue
     lat, lon = addr[:2]
     # Find what if any building shapes contain this lat/lon
-    for elat, elon, way, eway, eeway, refs, btags, id, v, newaddrs in bldgs:
+    for elat, elon, way, eway, eeway, refs, btags, attrs, newaddrs in bldgs:
         if 'addr:housenumber' in btags:
             continue
         if abs(elat - lat) + abs(elon - lon) > 0.005:
@@ -177,7 +173,7 @@ for addr in addrs:
         continue
     lat, lon = addr[:2]
     # Find what if any building shapes contain this lat/lon
-    for elat, elon, way, eway, eeway, refs, btags, id, v, newaddrs in bldgs:
+    for elat, elon, way, eway, eeway, refs, btags, attrs, newaddrs in bldgs:
         if 'addr:housenumber' in btags or newaddrs:
             continue
         if abs(elat - lat) + abs(elon - lon) > 0.005:
@@ -189,9 +185,7 @@ for addr in addrs:
         break
 
 sys.stdout.write("Bulding new xml\n")
-for lat, lon, way, eway, eeway, refs, tags, id, v, newaddrs in bldgs:
-    attrs = { "version": str(v), "id": str(id) }
-
+for lat, lon, way, eway, eeway, refs, tags, attrs, newaddrs in bldgs:
     # If this building contains only a single address node, copy its tags
     # to the building way and mark the node as no longer needed.
     if len(newaddrs) == 1:
